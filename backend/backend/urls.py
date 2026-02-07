@@ -10,8 +10,9 @@ def health_check(request):
 
 
 urlpatterns = [
-    path("", health_check),
-    path("admin/", admin.site.urls),
-    path("api/", include("employees.urls")),
-    path("api/", include("attendance.urls")),
+    path("api/employees/", EmployeeListCreateView.as_view()),
+    path("api/employees/<int:pk>/", EmployeeDeleteView.as_view()),
+
+    path("api/attendance/", AttendanceCreateView.as_view()),       
+    path("api/attendance/<int:employee_id>/", AttendanceListView.as_view()),
 ]

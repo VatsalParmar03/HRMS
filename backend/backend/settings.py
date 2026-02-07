@@ -6,7 +6,7 @@ SECRET_KEY = "hrms-lite-secret-key-2026"
 
 DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*", ".onrender.com"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -73,5 +73,6 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 STATIC_ROOT = BASE_DIR / "staticfiles"

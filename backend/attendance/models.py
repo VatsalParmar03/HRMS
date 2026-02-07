@@ -1,10 +1,11 @@
 from django.db import models
+from django.utils import timezone
 from employees.models import Employee
 
 
 class Attendance(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    date = models.DateField()
+    date = models.DateField(default=timezone.now)  # Add default
     status = models.CharField(
         max_length=10,
         choices=[
