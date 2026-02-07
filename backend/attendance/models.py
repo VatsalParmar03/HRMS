@@ -4,19 +4,23 @@ from employees.models import Employee
 
 
 class Attendance(models.Model):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    date = models.DateField(default=timezone.now)  # Add default
-    status = models.CharField(
-        max_length=10,
-        choices=[
-            ("Present", "Present"),
-            ("Absent", "Absent"),
-        ],
+    STATUS_CHOICES = [
+        ("Present", "Present"),
+        ("Absent", "Absent"),
+        ("Leave", "Leave"),
+    ]
+
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="attendance_records"
     )
+    date = models.DateField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("employee", "date")
+        unique_together = ("employee", "date")  # 🔥 prevents duplicates
 
     def __str__(self):
         return f"{self.employee.full_name} - {self.date} - {self.status}"

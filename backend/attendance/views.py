@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status as http_status
 from django.utils import timezone
 
 from .models import Attendance
@@ -16,7 +16,7 @@ class AttendanceCreateAPIView(APIView):
         if not employee_id or not date:
             return Response(
                 {"message": "Employee and date are required"},
-                status=status.HTTP_400_BAD_REQUEST,
+                status=http_status.HTTP_400_BAD_REQUEST,
             )
 
         try:
@@ -24,19 +24,25 @@ class AttendanceCreateAPIView(APIView):
         except Employee.DoesNotExist:
             return Response(
                 {"message": "Employee not found"},
-                status=status.HTTP_404_NOT_FOUND,
+                status=http_status.HTTP_404_NOT_FOUND,
             )
 
         serializer = AttendanceSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(employee=employee)  # ✅ CRITICAL FIX
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=http_status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
 
-class AttendanceListAPIView(APIView):
-    def get(self, request, employee_id):
-        attendance = Attendance.objects.filter(employee_id=employee_id).order_by('-date')
-        serializer = AttendanceSerializer(attendance, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+class AttendanceListView(APIView):
+    def get(self, request):
+        date = request.GET.get("date")
+
+        qs = Attendance.objects.select_related("employee")
+
+        if date:
+            qs = qs.filter(date=date)
+
+        serializer = AttendanceSerializer(qs, many=True)
+        return Response(serializer.data)
