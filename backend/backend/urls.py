@@ -4,19 +4,14 @@ from django.urls import path
 from employees.views import EmployeeListCreateAPIView, EmployeeDeleteAPIView
 from attendance.views import AttendanceCreateAPIView, AttendanceListAPIView
 
-
-def health_check(request):
-    return JsonResponse(
-        {"status": "ok", "message": "HRMS Lite Backend is running"}
-    )
-
-
 urlpatterns = [
-    #employee
-    path("api/employees/", EmployeeListCreateView.as_view()),
-    path("api/employees/<int:pk>/", EmployeeDeleteView.as_view()),
+    path("admin/", admin.site.urls),
 
-    #attendance
-    path("api/attendance/", AttendanceCreateView.as_view()),       
-    path("api/attendance/<int:employee_id>/", AttendanceListView.as_view()),
+    # Employees
+    path("api/employees/", EmployeeListCreateAPIView.as_view()),
+    path("api/employees/<int:pk>/", EmployeeDeleteAPIView.as_view()),
+
+    # Attendance
+    path("api/attendance/", AttendanceCreateAPIView.as_view()),
+    path("api/attendance/<int:employee_id>/", AttendanceListAPIView.as_view()),
 ]
