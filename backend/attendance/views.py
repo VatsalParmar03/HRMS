@@ -11,11 +11,11 @@ from employees.models import Employee
 class AttendanceCreateAPIView(APIView):
     def post(self, request):
         employee_id = request.data.get("employee")
-        status_value = request.data.get("status")
+        date = request.data.get("date")
 
-        if not employee_id or not status_value:
+        if not employee_id or not date:
             return Response(
-                {"message": "Employee and status are required"},
+                {"message": "Employee and date are required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -27,32 +27,12 @@ class AttendanceCreateAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Check if attendance already exists for today
-        today = timezone.now().date()
-        existing = Attendance.objects.filter(
-            employee=employee, 
-            date=today
-        ).first()
-        
-        if existing:
-            return Response(
-                {"message": "Attendance already marked for today"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        serializer = AttendanceSerializer(
-            data={
-                "employee": employee.id,
-                "status": status_value,
-                "date": today,
-            }
-        )
-
+        serializer = AttendanceSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(employee=employee)  # ✅ CRITICAL FIX
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AttendanceListAPIView(APIView):
