@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_BASE = "https://hrms-lite-backend-1-dj44.onrender.com/api";
+const API_BASE = "/api";
 
 function AttendancePage() {
   const [employees, setEmployees] = useState([]);
@@ -8,55 +8,104 @@ function AttendancePage() {
   const [date, setDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-  const [status, setStatus] = useState("PRESENT");
+  const [status, setStatus] = useState("Present");
   const [attendanceList, setAttendanceList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // Fetch employees
   useEffect(() => {
-    fetch(`${API_BASE}/employees/`)
-      .then(res => res.json())
-      .then(data => setEmployees(data));
+    const fetchEmployees = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_BASE}/employees/`);
+        if (!res.ok) throw new Error("Failed to fetch employees");
+        const data = await res.json();
+        setEmployees(Array.isArray(data) ? data : []);
+        setError("");
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load employees");
+        setEmployees([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEmployees();
   }, []);
 
-  const fetchAttendance = (id) => {
-    if (!id) return;
-    fetch(`${API_BASE}/attendance/${id}/`)
-      .then(res => res.json())
-      .then(data => setAttendanceList(data));
+  const fetchAttendance = async (id) => {
+    if (!id) {
+      setAttendanceList([]);
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/attendance/${id}/`);
+      if (!res.ok) throw new Error("Failed to fetch attendance");
+      const data = await res.json();
+      setAttendanceList(Array.isArray(data) ? data : []);
+      setError("");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load attendance");
+      setAttendanceList([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!employeeId) {
+      setError("Please select an employee");
+      return;
+    }
 
-    const res = await fetch(`${API_BASE}/attendance/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        employee: employeeId,
-        date,
-        status,
-      }),
-    });
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/attendance/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          employee: parseInt(employeeId),
+          date,
+          status,
+        }),
+      });
 
-    if (res.ok) {
-      fetchAttendance(employeeId);
-    } else {
-      alert("Failed to mark attendance");
+      if (!res.ok) {
+        throw new Error("Failed to mark attendance");
+      }
+      
+      setError("");
+      await fetchAttendance(employeeId);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to mark attendance");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div style={{ marginTop: "40px" }}>
       <h2>Attendance</h2>
+      
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
       <form onSubmit={handleSubmit}>
         <select
           value={employeeId}
           onChange={(e) => {
             setEmployeeId(e.target.value);
-            fetchAttendance(e.target.value);
+            if (e.target.value) {
+              fetchAttendance(e.target.value);
+            }
           }}
           required
+          disabled={loading}
         >
           <option value="">Select Employee</option>
           {employees.map(emp => (
@@ -72,6 +121,7 @@ function AttendancePage() {
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
+          disabled={loading}
         />
 
         <br /><br />
@@ -79,24 +129,31 @@ function AttendancePage() {
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
+          disabled={loading}
         >
-          <option value="PRESENT">Present</option>
-          <option value="ABSENT">Absent</option>
+          <option value="Present">Present</option>
+          <option value="Absent">Absent</option>
         </select>
 
         <br /><br />
 
-        <button type="submit">Mark Attendance</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Submitting..." : "Mark Attendance"}
+        </button>
       </form>
 
       <h3 style={{ marginTop: "20px" }}>Attendance Records</h3>
-      <ul>
-        {attendanceList.map(att => (
-          <li key={att.id}>
-            {att.date} — {att.status}
-          </li>
-        ))}
-      </ul>
+      {attendanceList.length === 0 ? (
+        <p>No attendance records found</p>
+      ) : (
+        <ul>
+          {attendanceList.map(att => (
+            <li key={att.id}>
+              {att.date} — {att.status}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
