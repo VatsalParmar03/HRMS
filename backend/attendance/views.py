@@ -36,10 +36,10 @@ class AttendanceCreateAPIView(APIView):
 
 
 class AttendanceListView(APIView):
-    def get(self, request):
+    def get(self, request, employee_id):
         date = request.GET.get("date")
 
-        qs = Attendance.objects.select_related("employee")
+        qs = Attendance.objects.select_related("employee").filter(employee_id=employee_id)
 
         if date:
             qs = qs.filter(date=date)

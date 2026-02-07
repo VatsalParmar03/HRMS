@@ -8,7 +8,7 @@ export default function Attendance() {
   const [date, setDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-  const [status, setStatus] = useState("PRESENT");
+  const [status, setStatus] = useState("Present");
   const [attendanceList, setAttendanceList] = useState([]);
 
   // Fetch employees
@@ -82,8 +82,9 @@ export default function Attendance() {
           value={status}
           onChange={(e) => setStatus(e.target.value)}
         >
-          <option value="PRESENT">Present</option>
-          <option value="ABSENT">Absent</option>
+          <option value="Present">Present</option>
+          <option value="Absent">Absent</option>
+          <option value="Leave">Leave</option>
         </select>
 
         <br />

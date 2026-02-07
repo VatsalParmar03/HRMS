@@ -107,20 +107,18 @@ export default function App() {
     }
   };
 
-  const markAttendance = async () => {
-  if (!attendanceForm.employee) {
-    setError("Please select an employee");
-    return;
-  }
-
+  async function markAttendance() {
   try {
+    const payload = {
+      employee: attendanceForm.employee,
+      status: attendanceForm.status,
+      date: new Date().toISOString().split("T")[0], // YYYY-MM-DD
+    };
+
     const res = await fetch(`${API_BASE}/attendance/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        employee: attendanceForm.employee,
-        status: attendanceForm.status,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
@@ -132,10 +130,9 @@ export default function App() {
     setError("");
     fetchAttendance(); // refresh list
   } catch (err) {
-    console.error(err);
     setError("Failed to mark attendance");
   }
-};
+}
 
   return (
     <div
